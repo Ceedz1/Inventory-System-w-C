@@ -265,6 +265,7 @@ void loginPage(){
   gets(username);
   fflush(stdin);
   printf("Enter Password: \n");
+  //password encryption '*'
   for(i = 0; i != 5; i++){
     ch=getch();
     password[i]=ch;
@@ -272,9 +273,7 @@ void loginPage(){
   }
   getch();
   
-  
-  
-
+//check account if its an admin or OU
   while(fread(&login, sizeof(login), 1, log)){
     if(strcmp(adminUser, username) == 0 && strcmp(adminPass, password) == 0 ){
       system("cls");
@@ -379,11 +378,6 @@ int main(){
       getch();
 
     }else{
-      // system("cls");
-      // printf("\n[%c] You have entered the wrong key!\n\n", choose);
-      // printf("Press enter to go back...");
-      // getch();
-      // system("cls");
         system("cls");
         printf("\nInvalid Operation!\n\nPress Enter to go back...");
         getch();
