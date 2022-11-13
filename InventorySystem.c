@@ -245,8 +245,8 @@ void adminPage(){
 
 void loginPage(){
   char adminUser[] = {"Christian"}, adminPass[] = {"Admin"};
-  char choose, username[30], password[20];
-
+  char ch, choose, username[30], password[20];
+  int i;
   FILE *log;
 
   log = fopen("login.txt", "r");
@@ -262,12 +262,17 @@ void loginPage(){
 
   fflush(stdin);
   printf("\nEnter Username: \n");
-  //fgets(username, 30, stdin);
   gets(username);
   fflush(stdin);
   printf("Enter Password: \n");
-  //fgets(password, 20, stdin);
-  gets(password);
+  for(i = 0; i != 5; i++){
+    ch=getch();
+    password[i]=ch;
+    printf("*");
+  }
+  getch();
+  
+  
   
 
   while(fread(&login, sizeof(login), 1, log)){
