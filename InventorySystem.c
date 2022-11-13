@@ -24,8 +24,8 @@ void OUsersPage(){
   do{
     printf("\nOrdinary Users Page\n");
     printf("===============================\n");
-    printf("[1] Request for Borrowing Equipment\n");
-    printf("[2] Request for Returning Equipment\n");
+    printf("[1] Barrow Equipment\n");
+    printf("[2] Return Equipment\n");
     printf("[3] Change Personal Password\n");
     printf("[4] Exit");
     printf("\n===============================\n");
@@ -180,7 +180,7 @@ void mngEquip(){
   }while(choose);
 }
 
-void persPass(){
+void adminPass(){
   char newPass[20];
   printf("\nChange Personal Password\n");
   printf("\nNew Password: \n");
@@ -222,7 +222,7 @@ void adminPage(){
         break;
       case 3:
         system("cls");
-        persPass();
+        adminPass();
         break;
       case 4:
         system("cls");
