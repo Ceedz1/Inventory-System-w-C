@@ -247,10 +247,10 @@ void loginPage(){
   char adminUser[] = {"Christian"}, adminPass[] = {"Admin"};
   char ch, choose, username[30], password[20];
   int i;
+
   FILE *log;
 
-  log = fopen("login.txt", "r");
-  if(log == NULL){
+  if((log = fopen("login.txt", "r")) == NULL){
     fputs("\nPlease Create an Account First", stderr);
     fputs("\n\n\npress any key to go back...", stderr);
     getch();
@@ -258,20 +258,37 @@ void loginPage(){
     main();
   }
 
+  // log = fopen("login.txt", "r");
+  // if(log == NULL){
+    
+  // }
+
   struct form login;
 
-  fflush(stdin);
   printf("\nEnter Username: \n");
-  gets(username);
   fflush(stdin);
+  gets(username);
   printf("Enter Password: \n");
+  fflush(stdin);
+  gets(password);
   //password encryption '*'
-  for(i = 0; i != 5; i++){
-    ch=getch();
-    password[i]=ch;
-    printf("*");
-  }
-  getch();
+
+  // for(i = 0; i != 13; i++){
+  //   ch=getch();
+  //   password[i]=ch;
+  //   printf("*");
+  // }
+  //  password[i] = '\0';
+  // getch();
+  // while(1){
+  //   ch = getch();
+  //   if(ch == 13){
+  //     password[i]=NULL;
+  //     break;
+  //   }else if(if == TAB)
+
+  //   }
+  
   
 //check account if its an admin or OU
   while(fread(&login, sizeof(login), 1, log)){
