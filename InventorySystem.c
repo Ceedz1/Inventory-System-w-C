@@ -7,6 +7,7 @@
 void adminPage();
 void registerPage();
 void mngAcc();
+void mngOu();
 void mngStaff();
 int main();
 int choose;
@@ -19,9 +20,10 @@ struct form{
   char lastName[30];
   char username[30];
   char password[20];
+  char status[10];
 };
 
-//---------------------------------------------
+//----------------------------------------------------------------------------------
 
 void OUsersPage(){
 
@@ -54,7 +56,7 @@ void OUsersPage(){
   }while(choose);
 }
 
-//---------------------------------------------
+//----------------------------------------------------------------------------------
 
 int checkAvailRoll(int rollNo){
   struct form rollNumCheck;
@@ -84,9 +86,22 @@ void editStaff(){
   FILE *fptr;
   FILE *ftemp;
 
-  printf("\nUpdate Staff Page");
-  printf("\n=========================\n");
-  printf("Enter Roll Number to update: \n");
+
+  /*** open the accounts file ***/
+  fptr = fopen ("staffList.txt","r");
+  if(fptr == NULL){
+    fprintf(stderr, "\nError opening accounts.dat\n\n");
+    mngStaff();
+  }
+  printf("\nUpdate Staff Page\n");
+  printf("========================================================================");
+  printf("\nNo.   First Name      Last Name       Email                     Password\n");
+  printf("========================================================================\n");
+  while (fread(&update, sizeof(struct form), 1, fptr))
+    printf ("%-5d %-15s %-15s %-25s %-15s\n", update.rNum, update.firstName, update.lastName, update.username, update.password);
+  fclose(fptr);
+
+  printf("\nEnter Roll Number to update: ");
   fflush(stdin);
   scanf("%d", &rollNo);
   
@@ -220,8 +235,6 @@ void addStaff(){
   fclose(fptr);
 }
 
-//---------------------------------------------
-
 void mngStaff(){
 
   do{
@@ -268,6 +281,157 @@ void mngStaff(){
   }while(choose);
 
 }
+//----------------------------------------------------------------------------------
+int checkOrdinaryUser(int rollNo){
+  struct form rollNumCheck;
+  
+  FILE *fptr;
+
+  fptr = fopen("OrdinaryUsers.txt", "r");
+  while(!feof(fptr)){
+    fread(&rollNumCheck, sizeof(struct form), 1, fptr);
+
+    if(rollNo == rollNumCheck.rNum){
+      fclose(fptr);
+      return 1;
+    }
+  }
+  
+  getch();
+  fclose(fptr);
+  return 0;
+}
+
+void editOrdinaryUser(){
+  int available, rollNo, save;
+
+  struct form OUpdate;
+
+  FILE *fptr;
+  FILE *ftemp;
+
+  fptr = fopen("OrdinaryUsers.txt", "r");
+  if(fptr == NULL){
+    fprintf(stderr, "\nError opening accounts.dat\n\n");
+    mngOu();
+  }
+  printf("\nUpdate Ordinary Users Page\n");
+  printf("=======================================================================================");
+  printf("\nNo.   First Name      Last Name       Email                     Password        Status\n");
+  printf("=======================================================================================\n");
+  while (fread(&OUpdate, sizeof(struct form), 1, fptr))
+    printf ("%-5d %-15s %-15s %-25s %-15s %-15s\n", OUpdate.rNum, OUpdate.firstName, OUpdate.lastName, OUpdate.username, OUpdate.password, OUpdate.status);
+  
+    
+  fclose(fptr);
+  
+  printf("\nEnter Roll Number to update: ");
+  fflush(stdin);
+  scanf("%d", &rollNo);
+
+  available = checkOrdinaryUser(rollNo);
+
+  if(available == 0){
+    printf("\nRoll No. [%d] unavailable!", rollNo);
+    getch();
+    editOrdinaryUser();
+  }else{
+    fptr = fopen("OrdinaryUsers.txt", "r");
+    ftemp = fopen("tempOrdinary.txt", "w");
+
+    while(fread(&OUpdate, sizeof(struct form), 1, fptr)){
+      save = OUpdate.rNum;
+      if(save != rollNo){
+        fwrite(&OUpdate, sizeof(struct form), 1, ftemp);
+      }else{
+        printf("\nWhich to Update");
+        printf("\n=========================\n");
+        printf("[1] Roll Number\n");
+        printf("[2] First/Last Name\n");
+        printf("[3] Email\n");
+        printf("[4] Password\n");
+        printf("[5] Status\n");
+        printf("[6] Back\n");
+        printf("=========================\n");
+
+        printf("Enter Operation: ");
+        scanf("%d", &choose);
+
+        switch(choose){
+          case 1:
+            printf("\nRoll Number: \n");
+            fflush(stdin);
+            scanf("%d", &OUpdate.rNum);
+            break;
+          case 2:
+            printf("\nFirst Name: \n");
+            fflush(stdin);
+            gets(OUpdate.firstName);
+            printf("\nLast Name: \n");
+            fflush(stdin);
+            gets(OUpdate.lastName);
+            break;
+          case 3:
+            printf("\nEmail: \n");
+            fflush(stdin);
+            gets(OUpdate.username);
+            break;
+          case 4:
+            printf("\nPassword: \n");
+            fflush(stdin);
+            gets(OUpdate.password);
+            break;
+          case 5:
+            printf("\nStatus: \n");
+            fflush(stdin);
+            gets(OUpdate.status);
+            break;
+          case 6:
+            system("cls");
+            mngOu();
+            break;
+        }
+        fwrite(&OUpdate, sizeof(struct form), 1, ftemp);
+      }
+    }
+    fclose(fptr);
+    fclose(ftemp);
+    fptr = fopen("OrdinaryUsers.txt", "w");
+    ftemp = fopen("tempOrdinary.txt", "r");
+
+    while(fread(&OUpdate, sizeof(struct form), 1, ftemp)){
+      fwrite(&OUpdate, sizeof(struct form), 1, fptr);
+    }
+    fclose(fptr);
+    fclose(ftemp);
+    printf("\n\nUpdate Success!");
+    getch();
+  }
+}
+
+void allOrdinaryUser(){
+  FILE *fptr;
+
+  struct form OUser;
+
+  /*** open the accounts file ***/
+  fptr = fopen ("OrdinaryUsers.txt","r");
+  if(fptr == NULL){
+    fprintf(stderr, "\nError opening accounts.dat\n\n");
+    mngStaff();
+  }
+
+  printf("\nNo.   First Name      Last Name       Email                  Password        Status\n");
+  printf("=====================================================================================\n");
+  while (fread(&OUser, sizeof(struct form), 1, fptr)){
+    printf ("%-5d %-15s %-15s %-22s %-15s %-15s\n", OUser.rNum, OUser.firstName, OUser.lastName, OUser.username, OUser.password, OUser.status);
+  }
+  
+
+  fclose(fptr);
+  printf("\n\nPress any key to continue...");
+  getch();
+}
 
 void mngOu(){
    do{
@@ -282,6 +446,16 @@ void mngOu(){
     scanf("%d", &choose);
 
     switch(choose) {
+      case 121:
+        system("cls");
+        allOrdinaryUser();
+        system("cls");
+        break;
+      case 122:
+        system("cls");
+        editOrdinaryUser();
+        system("cls");
+        break;
       case 123:
         system("cls");
         mngAcc();
@@ -297,7 +471,7 @@ void mngOu(){
   }while(choose);
 }
 
-//--------------------------------------------
+//----------------------------------------------------------------------------------
 
 void mngAcc(){
 
@@ -430,7 +604,7 @@ void adminPage(){
 //---------------------------------------------
 
 void loginPage(){
-  char adminUser[] = {"Christian"}, adminPass[] = {"Admin"};
+  char adminUser[] = {"Christian"}, adminPass[] = {"Admin"}, status[] = {"Disable"};
   char ch, choose, username[30], password[20];
   int i, size = 0;
 
@@ -471,12 +645,17 @@ void loginPage(){
 //-----------------------------------------------------------
   
 //check account if its an admin or OU
-  while(fread(&login, sizeof(login), 1, log)){
+  while(fread(&login, sizeof(struct form), 1, log)){
     if(strcmp(adminUser, username) == 0 && strcmp(adminPass, password) == 0 ){
       system("cls");
       adminPage();
     }
-    if(strcmp(username, login.username) == 0 && strcmp(password, login.password) == 0 ){
+    if(strcmp(status, login.status) == 0){
+      printf("\nPlease wait for Admin to verify the account!");
+      getch();
+      system("cls");
+      main();
+    }else if(strcmp(username, login.username) == 0 && strcmp(password, login.password) == 0 ){
       system("cls");
       OUsersPage();
     }else{
@@ -509,6 +688,7 @@ void loginPage(){
       }
     }
   }
+  fclose(log);
 }
 
 //------------------------------------------------------------
@@ -526,21 +706,24 @@ void registerPage(){
     main();
   }
 
-  struct form registration;
+  struct form registration = {.status = "Disable"};
 
   printf("\nRegister Page\n");
   printf("======================\n");
+  printf("Roll Number:\n");
   fflush(stdin);
-  printf("Enter your First Name:\n");
+  scanf("%d", &registration.rNum);
+  fflush(stdin);
+  printf("First Name:\n");
   gets(registration.firstName);
   fflush(stdin);
-  printf("Enter your Last Name:\n");
+  printf("Last Name:\n");
   gets(registration.lastName);
   fflush(stdin);
-  printf("Enter your Username:\n");
+  printf("Email:\n");
   gets(registration.username);
   fflush(stdin);
-  printf("Enter your Password:\n");
+  printf("Password:\n");
   gets(registration.password);
 
   fwrite(&registration, sizeof(registration), 1, log);
