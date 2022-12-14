@@ -1,280 +1,365 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <conio.h>
 
-int avlrollno(int rno);
+void mngAcc();
+void mngOu();
+void OUsersPage();
 
-struct student
-{
- int rollno;
- char name[30];
- float mark;
-}stud;
-//    FUNCTION TO INSERT RECORDS TO THE FILE
-void insert()
-{
- FILE *fp;
- fp = fopen("Record", "a");
- printf("Enter the Roll no   :");
- scanf("%d", &stud.rollno);
- printf("Enter the Name      :");
- scanf("%s", &stud.name);
- printf("Enter the mark      :");
- scanf("%f", &stud.mark);
- fwrite(&stud, sizeof(stud), 1, fp);
- fclose(fp);
-}
-//    FUNCTION TO DISPLAY RECORDS
-void disp()
-{
- FILE *fp1;
- fp1 = fopen("Record", "r");
- printf("\nRoll Number\tName\tMark\n\n");
- while (fread(&stud, sizeof(stud), 1, fp1))
- printf("  %d\t\t%s\t%.2f\n", stud.rollno, stud.name, stud.mark);
- fclose(fp1);
-}
-//    FUNCTION TO SEARCH THE GIVEN RECORD
-void search()
-{
- FILE *fp2;
- int r, s, avl;
- printf("\nEnter the Roll no you want to search  :");
- scanf("%d", &r);
- avl = avlrollno(r);
- if (avl == 0)
-  printf("Roll No %d is not available in the file\n",r);
- else
- {
-  fp2 = fopen("Record", "r");
-  while (fread(&stud, sizeof(stud), 1, fp2))
-  {
-   s = stud.rollno;
-   if (s == r)
-   {
-    printf("\nRoll no = %d", stud.rollno);
-    printf("\nName    = %s", stud.name);
-    printf("\nMark    = %.2f\n", stud.mark);
-   }
+int choose;
+
+struct form{
+  int rNum;
+  int qty;
+  char availability[20];
+  char firstName[30];
+  char lastName[30];
+  char username[30];
+  char password[20];
+  char status[10];
+  char roles[10];
+  
+};
+
+int checkOrdinaryUser(int rollNo){
+  struct form rollNumCheck;
+  
+  FILE *fptr;
+
+  if((fptr = fopen("ordinaryUsers.txt", "r")) == NULL){
+    fprintf(stderr, "\nError opening file!\n\n");
+    mngOu();
   }
-  fclose(fp2);
- }
-}
-//    FUNCTION TO DELETE A RECORD
 
+  while(!feof(fptr)){
+    fread(&rollNumCheck, sizeof(struct form), 1, fptr);
 
-void deletefile()
-{
- FILE *fpo;
- FILE *fpt;
- int r, s;
- printf("Enter the Roll no you want to delete :");
- scanf("%d", &r);
- if (avlrollno(r) == 0)
-  printf("Roll no %d is not available in the file\n", r);
- else
- {
-  fpo = fopen("Record", "r");
-  fpt = fopen("TempFile", "w");
-  while (fread(&stud, sizeof(stud), 1, fpo))
-  {
-   s = stud.rollno;
-   if (s != r)
-    fwrite(&stud, sizeof(stud), 1, fpt);
-  }
-  fclose(fpo);
-  fclose(fpt);
-  fpo = fopen("Record", "w");
-  fpt = fopen("TempFile", "r");
-  while (fread(&stud, sizeof(stud), 1, fpt))
-   fwrite(&stud, sizeof(stud), 1, fpo);
-  printf("\nRECORD DELETED\n");
-  fclose(fpo);
-  fclose(fpt);
- }
-
-}
-//    FUNCTION TO UPDATE THE RECORD
-void update()
-{
- int avl;
- FILE *fpt;
- FILE *fpo;
- int s, r, ch;
- printf("Enter roll number to update:");
- scanf("%d", &r);
- avl = avlrollno(r);
- if (avl == 0)
- {
-  printf("Roll number %d is not Available in the file", r);
- }
- else
- {
-  fpo = fopen("Record", "r");
-  fpt = fopen("TempFile", "w");
-  while (fread(&stud, sizeof(stud), 1, fpo))
-  {
-   s = stud.rollno;
-   if (s != r)
-    fwrite(&stud, sizeof(stud), 1, fpt);
-   else
-   {
-    printf("\n\t1. Update Name of Roll Number %d", r);
-    printf("\n\t2. Update Mark of Roll Number %d", r);
-    printf("\n\t3. Update both Name and Mark of Roll Number %d", r);
-    printf("\nEnter your choice:");
-    scanf("%d", &ch);
-    switch (ch)
-    {
-    case 1:
-     printf("Enter Name:");
-     scanf("%s", &stud.name);
-     break;
-    case 2:
-     printf("Enter Mark : ");
-     scanf("%f", &stud.mark);
-     break;
-    case 3:
-     printf("Enter Name: ");
-     scanf("%s", &stud.name);
-     printf("Enter Mark: ");
-     scanf("%f", &stud.mark);
-     break;
-    default:
-     printf("Invalid Selection");
-     break;
+    if(rollNo == rollNumCheck.rNum){
+      fclose(fptr);
+      return 1;
     }
-    fwrite(&stud, sizeof(stud), 1, fpt);
-   }
   }
-  fclose(fpo);
-  fclose(fpt);
-  fpo = fopen("Record", "w");
-  fpt = fopen("TempFile", "r");
-  while (fread(&stud, sizeof(stud), 1, fpt))
-  {
-   fwrite(&stud, sizeof(stud), 1, fpo);
-  }
-  fclose(fpo);
-  fclose(fpt);
-  printf("RECORD UPDATED");
- }
+  fclose(fptr);
+  return 0;
 }
-/* FUNCTION TO SORT THE RECORD */
-void sort()
-{
- int a[20], count = 0, i, j, t, c;
- FILE *fpo;
- fpo = fopen("Record", "r");
- while (fread(&stud, sizeof(stud), 1, fpo))
- {
-  a[count] = stud.rollno;
-  count++;
- }
- c = count;
- for (i = 0; i<count - 1; i++)
- {
-  for (j = i + 1; j<count; j++)
-  {
-   if (a[i]>a[j])
-   {
-    t = a[i];
-    a[i] = a[j];
-    a[j] = t;
-   }
-  }
- }
- printf("Roll No.\tName\t\tMark\n\n");
- count = c;
- for (i = 0; i<count; i++)
- {
-  rewind(fpo);
-  while (fread(&stud, sizeof(stud), 1, fpo))
-  {
-   if (a[i] == stud.rollno)
-    printf("\n %d\t\t %s \t\t %2f",stud.rollno, stud.name, stud.mark);
+
+void deleteOrdinary(){
+  int available, rollNo, save;
+
+  struct form delete;
+
+  FILE *fptr;
+  FILE *ftemp;
+
+  if((fptr = fopen("ordinaryUsers.txt", "r")) == NULL){
+    fprintf(stderr, "\nError opening file!\n\n");
+    mngOu();
   }
 
- }
-}
-//    FUNCTION TO CHECK GIVEN ROLL NO IS AVAILABLE //
-int avlrollno(int rno)
-{
- FILE *fp;
- int c = 0;
- fp = fopen("Record", "r");
- while (!feof(fp))
- {
-  fread(&stud, sizeof(stud), 1, fp);
+  printf("\nDelete Ordinary User Page\n");
+  printf("=====================================================================================================");
+  printf("\nNo.   First Name      Last Name       Email                  Roles           Password        Status\n");
+  printf("=====================================================================================================\n");
+  while (fread(&delete, sizeof(struct form), 1, fptr))
+    printf ("%-5d %-15s %-15s %-22s %-15s %-15s %-15s\n", delete.rNum, delete.firstName, delete.lastName, delete.username, delete.roles, delete.password, delete.status);
+  
+  fclose(fptr);
 
-  if (rno == stud.rollno)
-  {
-   fclose(fp);
-   return 1;
-  }
- }
- fclose(fp);
- return 0;
-}
-//FUNCTION TO CHECK THE FILE IS EMPTY OR NOT
-int empty()
-{
- int c = 0;
- FILE *fp;
- fp = fopen("Record", "r");
- while (fread(&stud, sizeof(stud), 1, fp))
-  c = 1;
- fclose(fp);
- return c;
-}
-// MAIN PROGRAM
-void main()
-{
- int c, emp;
- do
- {
-  printf("\n\t---Select your choice---------\n");
-  printf("\n\t1. INSERT\n\t2. DISPLAY\n\t3. SEARCH");
-  printf("\n\t4. DELETE\n\t5. UPDATE\n\t6. SORT");
-  printf("\n\t7. EXIT");
-  printf("\n\n------------------------------------------\n");
-  printf("\nEnter your choice:");
-  scanf("%d", &c);
-  printf("\n");
-  switch (c)
-  {
-  case 1:
-   insert();
-   break;
-  case 2:
-   emp = empty();
-   if (emp == 0)
-    printf("\nThe file is EMPTY\n");
-   else
-    disp();
-   break;
-  case 3:
-   search();
-   break;
-  case 4:
-   deletefile();
-   break;
-  case 5:
-   update();
-   break;
-  case 6:
-   emp = empty();
-   if (emp == 0)
-    printf("\n The file is EMPTY\n");
-   else
-    sort();
-   break;
-  case 7:
-   exit(1);
-   break;
-  default:
-   printf("\nYour choice is wrong\nPlease try again...\n");
-   break;
+  printf("\nEnter Roll Number to Delete: ");
+  fflush(stdin);
+  scanf("%d", &rollNo);
 
+  available = checkOrdinaryUser(rollNo);
+
+  if(available == 0){
+    printf("\nRoll No. [%d] unavailable!", rollNo);
+    getch();
+    system("cls");
+    mngOu();
+  }else{
+    fptr = fopen("ordinaryUsers.txt", "r");
+    ftemp = fopen("tempOrdinaryUser.txt", "w");
+
+    while(fread(&delete, sizeof(struct form), 1, fptr)){
+      save = delete.rNum;
+
+      if(save != rollNo){
+        fwrite(&delete, sizeof(struct form), 1, ftemp);
+      }
+    }
+    fclose(fptr);
+    fclose(ftemp);
+
+    remove("ordinaryUsers.txt");
+    rename("tempOrdinaryUser.txt", "ordinaryUsers.txt");
+
+    printf("\n\nDeleted Succesfully!");
+    getch();
   }
- } while (c != 7);
+}
+
+
+void editOrdinary(){
+  int available, rollNo, save;
+
+  struct form update;
+
+  FILE *fptr;
+  FILE *ftemp;
+
+  if((fptr = fopen("ordinaryUsers.txt", "r")) == NULL){
+    fprintf(stderr, "\nError opening file!\n\n");
+    mngOu();
+  }
+  
+  printf("\nUpdate Ordinary User Page\n");
+  printf("=====================================================================================================");
+  printf("\nNo.   First Name      Last Name       Email                  Roles           Password        Status\n");
+  printf("=====================================================================================================\n");
+  while (fread(&update, sizeof(struct form), 1, fptr))
+    printf ("%-5d %-15s %-15s %-22s %-15s %-15s %-15s\n", update.rNum, update.firstName, update.lastName, update.username, update.roles, update.password, update.status);
+  fclose(fptr);
+
+  printf("\nEnter Roll Number to update: ");
+  fflush(stdin);
+  scanf("%d", &rollNo);
+  
+  available = checkOrdinaryUser(rollNo);
+
+  if(available == 0){
+    printf("\nRoll No. [%d] unavailable!", rollNo);
+    getch();
+    system("cls");
+    mngOu();
+  }else{
+    fptr = fopen("ordinaryUsers.txt", "r");
+    ftemp = fopen("tempOrdinaryUser.txt", "w");
+
+    while(fread(&update, sizeof(struct form), 1, fptr)){
+      save = update.rNum;
+      if(save != rollNo){
+        fwrite(&update, sizeof(struct form), 1, ftemp);
+      }else{
+        printf("\nWhich to Update");
+        printf("\n=========================\n");
+        printf("[1] Roll Number\n");
+        printf("[2] First/Last Name\n");
+        printf("[3] Email\n");
+        printf("[4] Password\n");
+        printf("[5] Status\n");
+        printf("[6] Back\n");
+        printf("=========================\n");
+
+        printf("Enter Operation: ");
+        scanf("%d", &choose);
+
+        switch(choose){
+          case 1:
+            printf("\nRoll Number: \n");
+            fflush(stdin);
+            scanf("%d", &update.rNum);
+            break;
+          case 2:
+            printf("\nFirst Name: \n");
+            fflush(stdin);
+            gets(update.firstName);
+            printf("\nLast Name: \n");
+            fflush(stdin);
+            gets(update.lastName);
+            break;
+          case 3:
+            printf("\nEmail: \n");
+            fflush(stdin);
+            gets(update.username);
+            break;
+          case 4:
+            printf("\nPassword: \n");
+            fflush(stdin);
+            gets(update.password);
+            break;
+          case 5:
+            printf("\nStatus: \n");
+            fflush(stdin);
+            gets(update.status);
+            break;
+          case 6:
+            system("cls");
+            mngOu();
+            break;
+        }
+        fwrite(&update, sizeof(struct form), 1, ftemp);
+      }
+    }
+    fclose(fptr);
+    fclose(ftemp);
+    fptr = fopen("ordinaryUsers.txt", "w");
+    ftemp = fopen("tempOrdinaryUser.txt", "r");
+
+    while(fread(&update, sizeof(struct form), 1, ftemp)){
+      fwrite(&update, sizeof(struct form), 1, fptr);
+    }
+    fclose(fptr);
+    fclose(ftemp);
+    printf("\n\nUpdate Success!");
+    getch();
+  } 
+
+}
+
+void allOrdinary(){
+  FILE *fptr;
+
+  struct form display;
+
+  fptr = fopen ("ordinaryUsers.txt","r");
+  if(fptr == NULL){
+    fprintf(stderr, "\nError opening accounts.dat\n\n");
+    mngOu();
+  }
+
+  printf("\nNo.   First Name      Last Name       Email                  Roles           Password        Status\n");
+  printf("=====================================================================================================\n");
+  while (fread(&display, sizeof(struct form), 1, fptr))
+    printf ("%-5d %-15s %-15s %-22s %-15s %-15s %-15s\n", display.rNum, display.firstName, display.lastName, display.username, display.roles, display.password, display.status);
+  
+  fclose(fptr);
+  printf("\n\nPress any key to continue...");
+  getch();
+}
+
+void addOrdinary(){
+  char roles[] = {"OU"}, disOrdinary[] = {"Disable"};
+
+  struct form ordinary;
+
+  FILE *fptr;
+
+  if((fptr = fopen("ordinaryUsers.txt", "a")) == NULL){
+    printf("\n[Error Opening file!]");
+    mngOu();
+  }
+
+  printf("\nAdd Ordinary User");
+  printf("\n===========");
+  printf("\nRoll Number:\n");
+  fflush(stdin);
+  scanf("%d", &ordinary.rNum);
+  printf("First Name: \n");
+  fflush(stdin);
+  gets(ordinary.firstName);
+  printf("Last Name: \n");
+  fflush(stdin);
+  gets(ordinary.lastName);
+  printf("Email: \n");
+  fflush(stdin);
+  gets(ordinary.username);
+  printf("Password: \n");
+  fflush(stdin);
+  gets(ordinary.password);
+
+  strcpy(ordinary.status, disOrdinary);
+  strcpy(ordinary.roles, roles);
+  fwrite (&ordinary, sizeof(struct form), 1, fptr);
+  fclose(fptr);
+
+  printf("\n\nAdded Successfully!");
+  getch();
+}
+
+void mngOu(){
+   do{
+    printf("\nManage Ordinary User Page\n");
+    printf("===============================\n");
+    printf("[121] List all Ordinary User\n");
+    printf("[122] Edit Ordinary User Details\n");
+    printf("[123] Delete Ordinary User\n");
+    printf("[124] Add Ordinary User");
+    printf("[125] Back");
+    printf("\n===============================\n\n");
+
+    printf("Enter operation: ");
+    scanf("%d", &choose);
+
+    switch(choose) {
+      case 121:
+        system("cls");
+        allOrdinary();
+        system("cls");
+        break;
+      case 122:
+        system("cls");
+        editOrdinary();
+        system("cls");
+        break;
+      case 123:
+        system("cls");
+        deleteOrdinary();
+        system("cls");
+        break;
+      case 124:
+        system("cls");
+        addOrdinary();
+        system("cls");
+        break;
+      case 125:
+        system("cls");
+        mngAcc();
+        break;
+      default:
+        system("cls");
+        printf("\nInvalid Operation!\n\nPress Enter to go back...");
+        getch();
+        system("cls");
+        mngOu();
+        break;
+    }
+  }while(choose);
+}
+
+//----------------------------------------------------------------------------------
+
+void mngAcc(){
+
+  do{
+    printf("\nAccount Management\n");
+    printf("===============================\n");
+    // printf("[11] Manage Staff\n");
+    printf("[12] Manage Ordinary User\n");
+    // printf("[13] Back");
+    printf("\n===============================\n");
+
+    printf("Enter Operation: ");
+    scanf("%d", &choose);
+
+    switch(choose){
+    //   case 11:
+    //     system("cls");
+    //     mngStaff();
+    //     break;
+      case 12:
+        system("cls");
+        mngOu();
+        break;
+    //   case 13:
+    //     system("cls");
+    //     adminPage();
+    //     break;
+      default:
+        system("cls");
+        printf("\nInvalid Operation!\n\nPress Enter to go back...");
+        getch();
+        system("cls");
+        mngAcc();
+        break;
+  }
+  }while(choose);
+  
+}
+
+int main(){
+
+    mngAcc();
+
+    return 0;
 }
