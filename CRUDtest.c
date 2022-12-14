@@ -274,7 +274,7 @@ void mngOu(){
     printf("[121] List all Ordinary User\n");
     printf("[122] Edit Ordinary User Details\n");
     printf("[123] Delete Ordinary User\n");
-    printf("[124] Add Ordinary User");
+    printf("[124] Add Ordinary User\n");
     printf("[125] Back");
     printf("\n===============================\n\n");
 
