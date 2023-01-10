@@ -149,3 +149,171 @@ while(fread(&update, sizeof(struct form), 1, fptr)){
     printf("\nUpdate Succeful!");
     getch();
   }
+
+  //returnEquipment---------------
+  int available, rollNo, saveRoll, countVal;
+  char save[100];
+
+  struct form retEq;
+
+  FILE *fptr;
+  FILE *ftemp;
+
+  countVal = borrowEquip();
+
+  fptr = fopen("equipments.txt", "r");
+  ftemp = fopen("tempEquipment.txt", "w");
+
+  while(fread(&retEq, sizeof(struct form), 1, fptr)){
+    retEq.qty = countVal;
+    strcpy(save, retEq.availability);
+    if(strcmp(save, "borrowed") == 0){
+      fwrite(&retEq, sizeof(struct form), 1, ftemp);
+    }
+  }
+  fclose(fptr);
+  fclose(ftemp);
+
+  if((ftemp = fopen("tempEquipment.txt", "r")) == NULL){
+    printf("\n[Error Opening file!]");
+    OUsersPage();
+  }
+  
+  printf("\nReturn Equipments Page");
+  printf("\n=======================================================================");
+  printf("\nNo.   Name                      Status       Quantity      Availability\n");
+  printf("=======================================================================\n");
+  while (fread(&retEq, sizeof(struct form), 1, fptr))
+    printf ("%-5d %-25s %-15s %-10d %-15s\n", retEq.rNum, retEq.firstName, retEq.status, retEq.qty, retEq.availability);
+
+  fclose(ftemp);
+
+  printf("\nEnter Roll Number to return: ");
+  fflush(stdin);
+  scanf("%d", &rollNo);
+
+  available = checkEquipReturn(rollNo);
+
+  if(available == 0){
+    printf("\nRoll No. [%d] unavailable!", rollNo);
+    getch();
+    system("cls");
+    OUsersPage();
+  }else{
+    fptr = fopen("tempEquipment.txt", "r");
+    ftemp = fopen("tempReturnEquip.txt", "w");
+
+    while(fread(&retEq, sizeof(struct form), 1, fptr)){
+      saveRoll = retEq.rNum;
+
+      if(saveRoll != rollNo){
+        fwrite(&retEq, sizeof(struct form), 1, ftemp);
+      }else{
+        countVal--;
+        if(countVal == 0){
+          strcpy(retEq.availability, "available");
+          retEq.qty = countVal;
+        }
+        fwrite(&retEq, sizeof(struct form), 1, ftemp);
+      }
+    }
+    fclose(fptr);
+    fclose(ftemp);
+
+    fptr = fopen("equipments.txt", "w");
+    ftemp = fopen("tempReturnEquip.txt", "r");
+
+    while(fread(&retEq, sizeof(struct form), 1, ftemp)){
+      fwrite(&retEq, sizeof(struct form), 1, fptr);
+    }
+    fclose(fptr);
+    fclose(ftemp);
+
+    printf("\n\nEquipment Returned Successfully!");
+    getch();
+    system("cls");
+  }
+
+  //-----------------------------------------------------------------
+
+  //borrow function qty counter---------------------
+   if(available == 0){
+    printf("\nRoll No. [%d] unavailable!", rollNo);
+    getch();
+    system("cls");
+    OUsersPage();
+  }else if(strcmp(avlblty, equipborrow.availability) == 0){
+    printf("\nEquipment currently borrowed!");
+    getch();
+    system("cls");
+    OUsersPage();
+  }else if(equipborrow.qty == 0){
+    printf("\nEquipment currently borrowed!");
+    getch();
+    system("cls");
+    OUsersPage();
+  }else if(strcmp(equipborrow.status, prodStat) == 0){
+    printf("\nEquipment currently broken!");
+    getch();
+    system("cls");
+    OUsersPage();
+  }else{
+    fptr = fopen("equipments.txt", "r");
+    ftemp = fopen("tempEquipment.txt", "w");
+    //------------------------------------------
+
+//LOGIN Page-------------------------------------------------
+
+    while(fread(&OU, sizeof(struct form), 1, log) > 0){
+    if(strcmp(OU.status, "Disable") == 0){
+      printf("\nPlease wait for Admin to verify the account!");
+      getch();
+      system("cls");
+      main();
+    }else if(strcmp(username, OU.username) == 0 && strcmp(password, OU.password) == 0){
+      system("cls");
+      OUsersPage();
+    }else{
+      relogin();
+    }
+  }
+  fclose(log);
+
+  while(fread(&ADMN, sizeof(struct form), 1, admin) > 0){
+    if(strcmp(username, ADMN.username) == 0 && strcmp(password, ADMN.password) == 0){
+      system("cls");
+      adminPage();
+    }else{
+      relogin();
+    }
+  }
+  fclose(admin);
+
+  //-----------------------------------------------------------
+
+  system("cls");
+      printf("\nIncorrect Username or Password...");
+      printf("\n\nWant to try again?\n");
+      printf("==================\n");
+      printf("[Y] Re-login\n");
+      printf("[N] Exit to Main Menu\n");
+      printf("==================\n");
+
+      printf("Enter Operation: ");
+      fflush(stdin);
+      scanf("%c", &choose);
+
+      switch(choose){
+        case 'Y':
+        case 'y':
+          system("cls");
+          loginPage();
+          getch();
+          break;
+        case 'N':
+        case 'n':
+          system("cls");
+          main();
+          getch();
+          break;
+      }

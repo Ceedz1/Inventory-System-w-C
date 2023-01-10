@@ -5,8 +5,6 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-#define MAX_ITEMS 3
-
 void adminPage();
 void registerPage();
 void OUsersPage();
@@ -21,7 +19,7 @@ int checkEquip(int rollNo);
 int checkEquipReturn(int rollNo);
 int checkOrdinaryUser(int rollNo);
 
-
+static int i = 0;
 
 struct form{
   int rNum;
@@ -35,9 +33,8 @@ struct form{
   char roles[10];
 };
 
-struct form barrowed_items[MAX_ITEMS];
-static int file_initialized, i = 0;
-int choose, num_items = 0;
+static int file_initialized;
+int choose;
 
 //----------------------------------------------------------------------------------
 void borrowEquip(){
@@ -62,14 +59,13 @@ void borrowEquip(){
 
   fclose(fptr);
 
-  printf("\nEnter Roll Number to borrow: ");
+  printf("\nEnter Roll Number to update: ");
   fflush(stdin);
   scanf("%d", &rollNo);
 
   available = checkEquip(rollNo);
 
   if(available == 0){
-
     printf("\nRoll No. [%d] unavailable!", rollNo);
     getch();
     system("cls");
@@ -1202,6 +1198,7 @@ void mngEquip(){
     printf("[22] Add New Equipment\n");
     printf("[23] Edit Equipment\n");
     printf("[24] Delete Equipment\n");
+    printf("[25] Borrow Requests\n");
     printf("[26] Back\n");
     printf("\n===============================\n");
 
@@ -1247,7 +1244,7 @@ void mngEquip(){
 //----------------------------------------------------
 int checkAdmin(int rollNo){
   struct form rollNoCheck;
-  
+  printf("\n\n%d", rollNo);
   FILE *fptr;
 
   if((fptr = fopen("adminAcc.txt", "r")) == NULL){
@@ -1272,7 +1269,7 @@ void adminPass(){
   char newPass[20];
   int rollNo = 1, available, save;
 
-  struct form chngAdminPers;
+  struct form adminPass;
 
   FILE *fptr;
   FILE *ftemp;
@@ -1288,28 +1285,27 @@ void adminPass(){
     fptr = fopen("adminAcc.txt", "r");
     ftemp = fopen("tempAdmin.txt", "w");
 
-    while(fread(&chngAdminPers, sizeof(struct form), 1, fptr)){
-      save = chngAdminPers.rNum;
+    while(fread(&adminPass, sizeof(struct form), 1, fptr)){
+      save = adminPass.rNum;
 
       if(save != rollNo){
-        fwrite(&chngAdminPers, sizeof(struct form), 1 ,ftemp);
+        fwrite(&adminPass, sizeof(struct form), 1 ,ftemp);
       }else{
         printf("\nEnter New Password:\n");
         fflush(stdin);
-        gets(chngAdminPers.password);
+        gets(adminPass.password);
 
         do{
           printf("\nRe-enter Password:\n");
           fflush(stdin);
           gets(newPass);
 
-          if(strcmp(newPass, chngAdminPers.password) != 0){
+          if(strcmp(newPass, adminPass.password) != 0){
             printf("\n========================");
             printf("\nPassword did not match!!");
             printf("\n========================");
           }
-        }while(strcmp(newPass, chngAdminPers.password) != 0);
-        fwrite(&chngAdminPers, sizeof(struct form), 1, ftemp);
+        }while(strcmp(newPass, adminPass.password) != 0);
       }
     }
     fclose(fptr);
@@ -1318,8 +1314,8 @@ void adminPass(){
     fptr = fopen("adminAcc.txt", "w");
     ftemp = fopen("tempAdmin.txt", "r");
 
-    while(fread(&chngAdminPers, sizeof(struct form), 1, ftemp)){
-      fwrite(&chngAdminPers, sizeof(struct form), 1, fptr);
+    while(fread(&adminPass, sizeof(struct form), 1, ftemp)){
+      fwrite(&adminPass, sizeof(struct form), 1, fptr);
     }
     fclose(fptr);
     fclose(ftemp);

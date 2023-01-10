@@ -4,12 +4,15 @@
 #include <conio.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include "test2.h"
 
-#define MAX_ITEMS 3
+#define ITEM_NAME_LEN 50
+#define ITEM_QUANTITY_LEN 20
+#define ITEM_FILE "equipments.txt"
 
 void adminPage();
 void registerPage();
-void OUsersPage();
+int OUsersPage();
 void mngAcc();
 void mngOu();
 void mngStaff();
@@ -20,7 +23,6 @@ int main();
 int checkEquip(int rollNo);
 int checkEquipReturn(int rollNo);
 int checkOrdinaryUser(int rollNo);
-
 
 
 struct form{
@@ -35,102 +37,44 @@ struct form{
   char roles[10];
 };
 
-struct form barrowed_items[MAX_ITEMS];
 static int file_initialized, i = 0;
-int choose, num_items = 0;
+int choose;
 
 //----------------------------------------------------------------------------------
-void borrowEquip(){
-  int available, rollNo, save;
-  char avlblty[] = {"borrowed"};
-  struct form equipborrow;
+   
+void borrowEquip(struct form *items, int num_items){
+  char name[ITEM_NAME_LEN];
+  int i, quantity;
 
-  FILE *fptr;
-  FILE *ftemp;
-
-  if((fptr = fopen("equipments.txt", "r")) == NULL){
-    printf("\n[Error Opening file!]");
-    mngEquip();
-  }
-
-  printf("\nList of Equipments Page");
-  printf("\n=======================================================================");
-  printf("\nNo.   Name                      Status       Quantity      Availability\n");
-  printf("=======================================================================\n");
-  while (fread(&equipborrow, sizeof(struct form), 1, fptr))
-    printf ("%-5d %-25s %-15s %-10d %-15s\n", equipborrow.rNum, equipborrow.firstName, equipborrow.status, equipborrow.qty, equipborrow.availability);
-
-  fclose(fptr);
-
-  printf("\nEnter Roll Number to borrow: ");
+  printf("Enter Item name: ");
   fflush(stdin);
-  scanf("%d", &rollNo);
+  scanf("%s", &name);
+  
+  for(i = 0; i < num_items; i++){
+    if(strcmp(name, items[i].firstName) == 0) {
+        printf("Enter quantity: ");
+        scanf("%d", &quantity);
 
-  available = checkEquip(rollNo);
-
-  if(available == 0){
-
-    printf("\nRoll No. [%d] unavailable!", rollNo);
-    getch();
-    system("cls");
-    OUsersPage();
-  }else if(strcmp(avlblty, equipborrow.availability) == 0){
-    printf("\nEquipment currently borrowed!");
-    getch();
-    system("cls");
-     OUsersPage();
-  }else{
-    fptr = fopen("equipments.txt", "r");
-    ftemp = fopen("tempEquipment.txt", "w");
-
-    while(fread(&equipborrow, sizeof(struct form), 1, fptr)){
-      save = equipborrow.rNum;
-
-      if(save != rollNo){
-        fwrite(&equipborrow, sizeof(struct form), 1, ftemp);
-      }else{
-        strcpy(equipborrow.availability, avlblty);
-        
-        fwrite(&equipborrow, sizeof(struct form), 1, ftemp);
-      }
+        if (quantity > items[i].qty) {
+            printf("Error: Not enough items in stock.\n");
+        } else {
+            items[i].qty -= quantity;
+            printf("Successfully borrowed %d %s.\n", quantity, name);
+        }
+        return;
     }
-    fclose(fptr);
-    fclose(ftemp);
-    fptr = fopen("equipments.txt", "w");
-    ftemp = fopen("tempEquipment.txt", "r");
-
-    while(fread(&equipborrow, sizeof(struct form), 1, ftemp)){
-      fwrite(&equipborrow, sizeof(struct form), 1, fptr);
-    }
-    fclose(fptr);
-    fclose(ftemp);
-    printf("\n\nBorrow Success!");
-    getch();
-
   }
+  
 }
 
-void returnEquip(){
-  int available, rollNo, saveRoll;
-  char save[100], avlblty[] = {"available"};
+void returnEquip(struct form *items, int num_items){
+  char name[ITEM_NAME_LEN];
+  int i, quantity;
 
   struct form retEq;
 
-  FILE *fptr;
   FILE *ftemp;
-
-  fptr = fopen("equipments.txt", "r");
-  ftemp = fopen("tempEquipment.txt", "w");
-
-  while(fread(&retEq, sizeof(struct form), 1, fptr)){
-    strcpy(save, retEq.availability);
-
-    if(strcmp(save, "borrowed") == 0){
-      fwrite(&retEq, sizeof(struct form), 1, ftemp);
-    }
-  }
-  fclose(fptr);
-  fclose(ftemp);
+  FILE *fptr;
 
   if((ftemp = fopen("tempEquipment.txt", "r")) == NULL){
     printf("\n[Error Opening file!]");
@@ -146,47 +90,20 @@ void returnEquip(){
 
   fclose(ftemp);
 
-  printf("\nEnter Roll Number to return: ");
+  printf("Enter item name: ");
   fflush(stdin);
-  scanf("%d", &rollNo);
+  scanf("%s", name);
 
-  available = checkEquipReturn(rollNo);
-
-  if(available == 0){
-    printf("\nRoll No. [%d] unavailable!", rollNo);
-    getch();
-    system("cls");
-    OUsersPage();
-  }else{
-    fptr = fopen("equipments.txt", "r");
-    ftemp = fopen("tempReturnEquip.txt", "w");
-
-    while(fread(&retEq, sizeof(struct form), 1, fptr)){
-      saveRoll = retEq.rNum;
-
-      if(saveRoll != rollNo){
-        fwrite(&retEq, sizeof(struct form), 1, ftemp);
-      }else{
-        strcpy(retEq.availability, avlblty);
-
-        fwrite(&retEq, sizeof(struct form), 1, ftemp);
-      }
+  for(i = 0; i < num_items; i++) {
+    if (strcmp(name, items[i].firstName) == 0) {
+      printf("Enter quantity: ");
+      scanf("%d", &quantity);
+      items[i].qty += quantity;
+      printf("Successfully returned %d %s.\n", quantity, name);
+      return;
     }
-    fclose(fptr);
-    fclose(ftemp);
-
-    fptr = fopen("equipments.txt", "w");
-    ftemp = fopen("tempReturnEquip.txt", "r");
-
-    while(fread(&retEq, sizeof(struct form), 1, ftemp)){
-      fwrite(&retEq, sizeof(struct form), 1, fptr);
-    }
-    fclose(fptr);
-    fclose(ftemp);
-
-    printf("\n\nEquipment Returned Successfully!");
-    getch();
   }
+  printf("Error: Item not found.\n");
 }
 
 void changePersPassOU(){
@@ -254,6 +171,31 @@ void changePersPassOU(){
 }
 
 void OUsersPage(){
+  struct form *items;
+  int num_items = 0;
+
+  //load items from file
+  FILE *fptr;
+
+  if((fptr = fopen(ITEM_FILE, "r")) == NULL){
+    printf("\nError Opening File!");
+    getch();
+    OUsersPage();
+  }
+
+  if(fptr){
+    char name[ITEM_NAME_LEN];
+    int quantity;
+
+    while(fscanf(fptr, "%s %d", name, &quantity) == 2){
+        num_items++;
+        items = realloc(items, num_items * sizeof(struct form));
+
+        strcpy(items[num_items - 1].firstName, name);
+        items[num_items - 1].qty = quantity;
+    }
+    fclose(fptr);
+  }
 
   do{
     printf("\nOrdinary Users Page\n");
@@ -270,12 +212,12 @@ void OUsersPage(){
     switch(choose) {
       case 1:
         system("cls");
-        borrowEquip();
+        borrowEquip(items, num_items);
         system("cls");
         break;
       case 2:
         system("cls");
-        returnEquip();
+        returnEquip(items, num_items);
         system("cls");
         break;
       case 3:
@@ -295,7 +237,16 @@ void OUsersPage(){
         break;
 
     }
-  }while(choose);
+  }while(choose != 4 );
+
+  fptr = fopen(ITEM_FILE, "w");
+  if(fptr){
+    for (int i = 0; i < num_items; i++) {
+    fprintf(fptr, "%s %d\n", items[i].firstName, items[i].qty);
+    }
+    fclose(fptr);
+  }
+  free(items);
 }
 
 //----------------------------------------------------------------------------------
@@ -1202,6 +1153,7 @@ void mngEquip(){
     printf("[22] Add New Equipment\n");
     printf("[23] Edit Equipment\n");
     printf("[24] Delete Equipment\n");
+    printf("[25] Borrow Requests\n");
     printf("[26] Back\n");
     printf("\n===============================\n");
 
